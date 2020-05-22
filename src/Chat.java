@@ -1,14 +1,10 @@
 
 import java.awt.event.KeyEvent;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.JOptionPane;
-import org.jgroups.Address;
-import org.jgroups.JChannel;
-import org.jgroups.Message;
-import org.jgroups.ReceiverAdapter;
-import org.jgroups.View;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.JTextPane;
 
 /**
  *
@@ -22,7 +18,49 @@ public class Chat extends javax.swing.JFrame {
     public Chat() {
         initComponents();
     }
+    /*Inicio Getters*/
 
+    public JButton getBtnEntrar() {
+        return btnEntrar;
+    }
+
+    public JButton getBtnFalar() {
+        return btnFalar;
+    }
+
+    public JButton getBtnSair() {
+        return btnSair;
+    }
+
+    public JButton getBtnSussurar() {
+        return btnSussurar;
+    }
+
+    public JComboBox<String> getComboBoxUsuarios() {
+        return comboBoxUsuarios;
+    }
+
+    public JTextField getFieldApelido() {
+        return fieldApelido;
+    }
+
+    public JTextField getFieldFalar() {
+        return fieldFalar;
+    }
+
+    public JTextField getFieldSussurar() {
+        return fieldSussurar;
+    }
+
+    public JTextPane getjTextInfo() {
+        return jTextInfo;
+    }
+
+    public JTextArea getTxtAreaChat() {
+        return txtAreaChat;
+    }
+    
+    /*Fim Getters*/
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -210,7 +248,7 @@ public class Chat extends javax.swing.JFrame {
 
     private void btnEntrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEntrarActionPerformed
         // TODO add your handling code here:
-        com.entrar();
+        com.entrar(this);
     }//GEN-LAST:event_btnEntrarActionPerformed
 
     private void btnSairActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSairActionPerformed
@@ -281,105 +319,6 @@ public class Chat extends javax.swing.JFrame {
             }
         });
     }
-
-    //Define o JChannel
-    JChannel channel;
-    //Classe do comunicador, para fins de facilitar o desenvolvimento, está junto com o form
-    class Comunicador extends ReceiverAdapter{
-        private void entrar(){
-            //Seta a preferencia por IPV4
-            System.setProperty("java.net.preferIPv4Stack", "true");
-            //Verifica se o apelido foi preenchido
-            if(fieldApelido.getText().equals("")){
-                JOptionPane.showMessageDialog(null, "Digite seu apelido...");
-            }
-            else{
-                try {
-                    channel = new JChannel(); //Cria um novo channel
-                    channel.setReceiver(this); //Define a classe que implementa o método de callback
-                    channel.setName(fieldApelido.getText()); //Seta o nome com o apelido digitado
-                    channel.connect("Chat - JGroups"); //Define o nome do grupo
-                    //Desativa e ativa botoes e campos
-                    fieldApelido.setEnabled(false);
-                    btnEntrar.setEnabled(false);
-                    btnSair.setEnabled(true);
-                    comboBoxUsuarios.setEnabled(true);
-                    fieldFalar.setEnabled(true);
-                    btnFalar.setEnabled(true);
-                }
-                catch (Exception ex) {
-                    Logger.getLogger(Chat.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        }
-        //Envia uma mensagem publica
-        private void falar(String mensagem){
-            if(!mensagem.equals("")){
-                Message msg = new Message(null, mensagem);
-                try {
-                    channel.send(msg);
-                }
-                catch (Exception ex) {
-                    Logger.getLogger(Chat.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        }
-        //Envia uma mensagem privada
-        private void sussurar(String destinatario, String mensagem){
-            View view = channel.getView(); //Instancia a view do canal
-            List<Address> membros = view.getMembers(); //Cria uma lista com todos os membros
-
-            //Pegar o destinatario, ver se o destinatario é mesmo na lista de membro, dai mandar msg
-            membros.stream().filter(membro -> (destinatario.equals(membro.toString()))).forEach(
-                membro -> {
-                    try {
-                        Message msg = new Message(membro, mensagem);
-                        channel.send(msg);
-                    } catch (Exception ex) {
-                        Logger.getLogger(Chat.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-            );
-        }
-        
-        @Override
-        public void receive(Message msg) {
-            String chat = msg.getSrc().toString();
-            //verifica se a mensagem possui um destinatario, ou seja, é privada
-            if(msg.getDest() != null){
-                chat += " sussurou para você: "+msg.getObject()+"\n";
-            }
-            //Envia para todos no chat
-            else{
-                chat += msg.getObject()+"\n";
-            }
-            txtAreaChat.append(chat);
-        }
-        //Callback para atualizar as entradas e saídas do grupo
-        @Override
-        public void viewAccepted(View view_atual) {
-            String info;
-            List<Address> membros = view_atual.getMembers();
-            
-            if(membros.size() > 1){
-                comboBoxUsuarios.removeAllItems();
-                comboBoxUsuarios.addItem("Selecionar Usuário");
-                info = "";
-            }
-            //Atualiza o texto de informações
-            info = "---VISÃO DO GRUPO ATUALIZADA---\n";
-            info += "ID da view: "+view_atual.getViewId().getId();
-            info += "\nCoordenador: "+view_atual.getCreator();
-            info += "\nMembros: ";
-            //Itera sobre os membros
-            for (Address membro : membros){
-                info += membro+", ";
-                comboBoxUsuarios.addItem(membro.toString());
-            }
-            jTextInfo.setText(info);
-        }
-        
-    }
     
     //Métodos
     Comunicador com = new Comunicador(); //Cria uma instância do comunicador para acessar os métodos
@@ -389,7 +328,7 @@ public class Chat extends javax.swing.JFrame {
         //Verificando o tamanho do combobox
         if(tamCombo()){
             String user = comboBoxUsuarios.getSelectedItem().toString();
-            if((!user.equals(channel.getAddressAsString()))&&(!user.equals("Selecionar Usuário"))){
+            if((!user.equals(com.channel.getAddressAsString()))&&(!user.equals("Selecionar Usuário"))){
                 fieldSussurar.setEditable(true);
                 btnSussurar.setEnabled(true);
             }else{
@@ -421,7 +360,7 @@ public class Chat extends javax.swing.JFrame {
     //Sai do chat
     private void sair(){
         com.falar(" saiu do chat.");
-        channel.disconnect();
+        com.channel.disconnect();
         fieldApelido.setEnabled(true);
         btnEntrar.setEnabled(true);
         comboBoxUsuarios.setEnabled(false);
