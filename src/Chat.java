@@ -282,21 +282,23 @@ public class Chat extends javax.swing.JFrame {
         });
     }
 
-    //Lista os usuarios
+    //Define o JChannel
     JChannel channel;
-    
+    //Classe do comunicador, para fins de facilitar o desenvolvimento, está junto com o form
     class Comunicador extends ReceiverAdapter{
         private void entrar(){
+            //Seta a preferencia por IPV4
             System.setProperty("java.net.preferIPv4Stack", "true");
+            //Verifica se o apelido foi preenchido
             if(fieldApelido.getText().equals("")){
                 JOptionPane.showMessageDialog(null, "Digite seu apelido...");
             }
             else{
                 try {
-                    channel = new JChannel();
-                    channel.setReceiver(this);
-                    channel.setName(fieldApelido.getText());
-                    channel.connect("Chat - JGroups");
+                    channel = new JChannel(); //Cria um novo channel
+                    channel.setReceiver(this); //Define a classe que implementa o método de callback
+                    channel.setName(fieldApelido.getText()); //Seta o nome com o apelido digitado
+                    channel.connect("Chat - JGroups"); //Define o nome do grupo
                     //Desativa e ativa botoes e campos
                     fieldApelido.setEnabled(false);
                     btnEntrar.setEnabled(false);
@@ -310,7 +312,7 @@ public class Chat extends javax.swing.JFrame {
                 }
             }
         }
-        
+        //Envia uma mensagem publica
         private void falar(String mensagem){
             if(!mensagem.equals("")){
                 Message msg = new Message(null, mensagem);
@@ -322,7 +324,7 @@ public class Chat extends javax.swing.JFrame {
                 }
             }
         }
-        
+        //Envia uma mensagem privada
         private void sussurar(String destinatario, String mensagem){
             View view = channel.getView(); //Instancia a view do canal
             List<Address> membros = view.getMembers(); //Cria uma lista com todos os membros
@@ -337,21 +339,23 @@ public class Chat extends javax.swing.JFrame {
                         Logger.getLogger(Chat.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-            ); 
+            );
         }
         
         @Override
         public void receive(Message msg) {
             String chat = msg.getSrc().toString();
+            //verifica se a mensagem possui um destinatario, ou seja, é privada
             if(msg.getDest() != null){
                 chat += " sussurou para você: "+msg.getObject()+"\n";
             }
+            //Envia para todos no chat
             else{
                 chat += msg.getObject()+"\n";
             }
             txtAreaChat.append(chat);
         }
-        
+        //Callback para atualizar as entradas e saídas do grupo
         @Override
         public void viewAccepted(View view_atual) {
             String info;
@@ -378,10 +382,11 @@ public class Chat extends javax.swing.JFrame {
     }
     
     //Métodos
-    Comunicador com = new Comunicador();
+    Comunicador com = new Comunicador(); //Cria uma instância do comunicador para acessar os métodos
     
-    //Verifica se o usuario é outro
+    //Verifica o usuário para enviar mensagens privadas
     private void verificaUsuario(){
+        //Verificando o tamanho do combobox
         if(tamCombo()){
             String user = comboBoxUsuarios.getSelectedItem().toString();
             if((!user.equals(channel.getAddressAsString()))&&(!user.equals("Selecionar Usuário"))){
@@ -394,7 +399,7 @@ public class Chat extends javax.swing.JFrame {
             }
         }
     }
-    
+    //Envia uma mensagem privada
     private void sussurar(){
         if(tamCombo()){
             String user = comboBoxUsuarios.getSelectedItem().toString();
@@ -407,13 +412,13 @@ public class Chat extends javax.swing.JFrame {
             }
         }
     }
-    
+    //Fala para todos no chat
     private void falar(){
         String msg = " disse: "+fieldFalar.getText();
         com.falar(msg);
         fieldFalar.setText("");
     }
-    
+    //Sai do chat
     private void sair(){
         com.falar(" saiu do chat.");
         channel.disconnect();
@@ -424,8 +429,6 @@ public class Chat extends javax.swing.JFrame {
         fieldFalar.setEnabled(false);
         btnFalar.setEnabled(false);
     }
-    
-    
     
     //Verifica o tamanho do combobox
     private boolean tamCombo(){
