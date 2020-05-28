@@ -1,4 +1,4 @@
-
+import java.io.FileInputStream;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -8,12 +8,6 @@ import org.jgroups.JChannel;
 import org.jgroups.Message;
 import org.jgroups.ReceiverAdapter;
 import org.jgroups.View;
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 /**
  *
@@ -25,6 +19,7 @@ public class Comunicador extends ReceiverAdapter {
     Chat chat;
     
     public void entrar(Chat chat){
+        
             this.chat = chat;
             //Seta a preferencia por IPV4
             System.setProperty("java.net.preferIPv4Stack", "true");
@@ -80,7 +75,6 @@ public class Comunicador extends ReceiverAdapter {
                 }
             );
         }
-        
         @Override
         public void receive(Message msg) {
             String msgChat = msg.getSrc().toString();
@@ -94,17 +88,16 @@ public class Comunicador extends ReceiverAdapter {
             }
             this.chat.getTxtAreaChat().append(msgChat);
         }
+        
         //Callback para atualizar as entradas e saídas do grupo
         @Override
         public void viewAccepted(View view_atual) {
             String info;
             List<Address> membros = view_atual.getMembers();
             
-            if(membros.size() > 1){
-                this.chat.getComboBoxUsuarios().removeAllItems();
-                this.chat.getComboBoxUsuarios().addItem("Selecionar Usuário");
-                info = "";
-            }
+            this.chat.getComboBoxUsuarios().removeAllItems();
+            this.chat.getComboBoxUsuarios().addItem("Selecionar Usuário");
+            info = "";
             //Atualiza o texto de informações
             info = "---VISÃO DO GRUPO ATUALIZADA---\n";
             info += "ID da view: "+view_atual.getViewId().getId();
